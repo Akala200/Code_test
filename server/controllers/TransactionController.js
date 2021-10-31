@@ -1,3 +1,5 @@
+/* eslint-disable eqeqeq */
+/* eslint-disable operator-assignment */
 /* eslint-disable no-await-in-loop */
 /* eslint-disable no-plusplus */
 /* eslint-disable no-restricted-syntax */
@@ -143,6 +145,8 @@ class TransactionController {
     const id = req.userId;
     const purchasedProducts = [];
     let updateAmount;
+    let totalCost = 0;
+    console.log(products);
 
 
     try {
@@ -160,54 +164,64 @@ class TransactionController {
       }
 
 
-      for (let i = 0; i < products.length; i++) {
-        console.log(products[i]);
-        const getProduct = await Product.findOne({ _id: products[i].productId });
-        if (!getProduct) {
-          return res
-            .status(400)
-            .json(responses.error(400, `Sorry, we are out of stock for the product with the  ID - ${products[i].productId}`));
-        } else {
-          const getseller = await User.findOne({ _id: getProduct.sellerId });
-          if (!getseller) {
+      if (total_amount === 5 || total_amount === 10 || total_amount === 20 || total_amount === 50 || total_amount === 100) {
+        for (let i = 0; i < products.length; i++) {
+          console.log(products[i]);
+          const getProduct = await Product.findOne({ _id: products[i].productId });
+          if (!getProduct) {
             return res
               .status(400)
-              .json(responses.error(400, `Sorry, the product has no registered seller - ${products[i].productId}`));
+              .json(responses.error(400, `Sorry, we are out of stock for the product with the  ID - ${products[i].productId}`));
+          } else {
+            const getseller = await User.findOne({ _id: getProduct.sellerId });
+            if (!getseller) {
+              return res
+                .status(400)
+                .json(responses.error(400, `Sorry, the product has no registered seller - ${products[i].productId}`));
+            }
+            totalCost = totalCost + getProduct.cost;
+            const updateAmountSeller = getseller.deposit + getProduct.cost * products[i].numberOfItem;
+            const amountAvailable = getProduct.amountAvailable - products[i].numberOfItem;
+
+            const creditObjectSeller = {
+              deposit: updateAmountSeller,
+            };
+            const updateProductObject = {
+              amountAvailable
+            };
+            await User.findOneAndUpdate({ _id: getProduct.sellerId }, creditObjectSeller, { new: true, runValidators: true, });
+            // Update product
+            const updatedProduct = await Product.findOneAndUpdate({ _id: getProduct._id }, updateProductObject, { new: true, runValidators: true, });
+
+            purchasedProducts.push(updatedProduct);
           }
-          const updateAmountSeller = getseller.deposit + getProduct.cost * products[i].numberOfItem;
-          const amountAvailable = getProduct.amountAvailable - products[i].numberOfItem;
-          const creditObjectSeller = {
-            deposit: updateAmountSeller,
-          };
-          const updateProductObject = {
-            amountAvailable
-          };
-          await User.findOneAndUpdate({ _id: getProduct.sellerId }, creditObjectSeller, { new: true, runValidators: true, });
-          // Update product
-          const updatedProduct = await Product.findOneAndUpdate({ _id: getProduct._id }, updateProductObject, { new: true, runValidators: true, });
-
-          purchasedProducts.push(updatedProduct);
         }
-      }
 
-      updateAmount = getuser.deposit - total_amount;
+        const change = total_amount - totalCost;
 
-      const creditObject = {
-        deposit: updateAmount,
-      };
+        const creditObject = {
+          deposit: updateAmount,
+          change
+        };
 
-      const responseObject = {
-        total_spent: total_amount,
-        balance: updateAmount,
-        products: purchasedProducts
-      };
+        const responseObject = {
+          total_spent: total_amount,
+          change,
+          balance: updateAmount,
+          products: purchasedProducts,
+        };
 
-      const updatedTransaction = await User.findOneAndUpdate({ _id: id }, creditObject, { new: true, runValidators: true, });
+        const updatedTransaction = await User.findOneAndUpdate({ _id: id }, creditObject, { new: true, runValidators: true, });
 
-      if (updatedTransaction) {
+        if (updatedTransaction) {
+          return res
+            .status(200)
+            .json(responses.success(200, 'Goods successfully Purchased', responseObject));
+        }
+      } else {
         return res
-          .status(200)
-          .json(responses.success(200, 'Goods successfully Purchased', responseObject));
+          .status(400)
+          .json(responses.error(400, 'Kindly enter an amount that is equivalent to 5, 10, 20, 50 or 100'));
       }
     } catch (error) {
       tracelogger(error);

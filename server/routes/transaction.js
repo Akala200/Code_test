@@ -1,3 +1,4 @@
+/* eslint-disable import/named */
 
 import { Router } from 'express';
 import TransactionController from '../controllers/TransactionController';

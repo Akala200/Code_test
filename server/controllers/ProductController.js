@@ -151,6 +151,7 @@ class ProductController {
       id
     } = req.query;
 
+    const idUser = req.userId;
 
     try {
       const getProduct = await Product.findOne({ _id: id });
@@ -159,6 +160,11 @@ class ProductController {
         return res
           .status(400)
           .json(responses.error(400, 'Sorry, this Product does not exist'));
+      }
+      if (getProduct.sellerId !== idUser) {
+        return res
+          .status(400)
+          .json(responses.error(400, 'Sorry, you cannot delete this product'));
       }
       const deletedProduct = await Product.findByIdAndRemove({ _id: id });
 

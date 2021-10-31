@@ -23,6 +23,7 @@ const UserSchema = new Schema(
       type: String,
       enum: ['Buyer', 'Seller'],
     },
+    change: { type: Number, default: 0 },
     deposit: { type: Number, default: 0 },
   },
   { timestamps: true }
