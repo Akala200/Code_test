@@ -40,11 +40,12 @@ class DataController {
    *@memberof DatasController
    */
   static async purchaseData(req, res) {
-    const id = req.DataId;
-    console.log('here now now');
+    const {
+      data_amount, phone,
+    } = req.body;
 
     // example data
-    const url = 'http://41.203.65.11:8913/glongtopupservice/service?wsdl';
+    const url = 'http://41.203.65.10:8913/glongtopupservice/service?wsdl';
     const sampleHeaders = {
       'Data-agent': 'sampleTest',
       'Content-Type': 'text/xml;charset=UTF-8',
@@ -76,7 +77,7 @@ class DataController {
                 <DataId>9900</DataId>
              </initiatorPrincipalId>
              <!--Optional:-->
-             <password>*******</password>
+             <password>A2ibakat19fm</password>
              <!--Optional:-->
              <transactionProperties>
                 <!--Zero or more repetitions:-->
@@ -100,7 +101,7 @@ class DataController {
           <!--Optional:-->
           <topupPrincipalId>
              <!--Optional:-->
-             <id>2348059999008</id>
+             <id>${phone}</id>
              <!--Optional:-->
              <type>SUBSCRIBERMSISDN</type>
              <!--Optional:-->
@@ -116,7 +117,7 @@ class DataController {
           <!--Optional:-->
           <topupAccountSpecifier>
              <!--Optional:-->
-             <accountId>2348059999008</accountId>
+             <accountId>${phone}</accountId>
              <!--Optional:-->
              <accountTypeId>DATA_BUNDLE</accountTypeId>
           </topupAccountSpecifier>
@@ -127,14 +128,14 @@ class DataController {
              <!--Optional:-->
              <currency>NGN</currency>
              <!--Optional:-->
-             <value>25</value>
+             <value>${data_amount}</value>
           </amount>
        </ext:requestTopup>
     </soapenv:Body>
    </soapenv:Envelope>`;
 
     const options = {
-      url: 'http://41.203.65.11:8913/glongtopupservice/service?wsdl',
+      url: 'http://41.203.65.10/glongtopupservice/service?wsdl',
       method: 'POST',
       body: xml,
       headers: {
@@ -147,8 +148,8 @@ class DataController {
       console.log(error);
       if (error) {
         return res
-          .status(200)
-          .json(responses.success(200, 'Could not connect to the IP'));
+          .status(500)
+          .json(responses.success(500, 'Could not connect to the IP'));
       }
       console.log(response);
       console.log(body);
@@ -160,6 +161,9 @@ class DataController {
         });
       }
       console.log('E', response.statusCode, response.statusMessage);
+      return res
+        .status(200)
+        .json(responses.success(200, response.statusMessage, body));
     };
     request(options, callback);
   }
