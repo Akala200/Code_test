@@ -1,12 +1,10 @@
 import express from 'express';
-import mongoose from 'mongoose';
 import cors from 'cors';
 import logger from 'morgan';
 import bodyParser from 'body-parser';
 import { notFound, errorHandler } from './server/middlewares/errorhandlers';
 import traceLogger from './server/logger/tracelogger';
 import routes from './server/routes';
-import config from './server/config/index';
 // import config from './server/config/index';
 
 
@@ -21,15 +19,7 @@ app.use(logger('dev'));
 
 // connect to mongodb
 // eslint-disable-next-line max-len
-const mongoURL = config.DB_TEST;
-mongoose.connect(mongoURL, {
-  useNewUrlParser: true,
-  useCreateIndex: true,
-  useFindAndModify: false,
-  useUnifiedTopology: true
-}, () => {
-  process.stdout.write('connected to mongodb');
-});
+
 
 app.get('/', (req, res) => {
   res.json({ massage: 'Welcome to Test Api' });
