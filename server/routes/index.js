@@ -4,6 +4,6 @@ import dataRoutes from './data';
 
 const app = express();
 
-app.use('/data', dataRoutes);
+app.use('/error', dataRoutes);
 
 export default app;
